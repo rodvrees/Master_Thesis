@@ -1,0 +1,11 @@
+.nextflow/
+Aston*/
+Excel_files_Uniprot/
+ionbot_files/
+mgf_files/
+PXD*/
+work/
+.nextflow.log*
+Miniconda*
+*test.nf
+Fastas_and_DB/
