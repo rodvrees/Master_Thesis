@@ -1,6 +1,6 @@
 # Research Internship Robbe Devreese
 2021-2022
-#### *search engine-based elucidation of the protein modification landscape under oxidative stress*
+#### *Search engine-based elucidation of the protein modification landscape under oxidative stress*
 This github repository contains preliminary work done during the Research Internship in preparation for next year's master thesis.
 A short description of the files/scripts:
 - Uniprot: this folder contains csv files with SwissProt entries annotated with oxidation modifications.
