@@ -4,7 +4,7 @@
 params.accession = "PXD014629"
 
 /*
-Database: Should be either human, mouse, humanTMT, mouseTMT (and other, make configfiles accordingly), 
+Database: Should be either human, mouse, humanTMT10, mouseTMT10 (and other, make configfiles accordingly), 
 alternatively, make configfiles and make the parameter the path, maybe even better
 default = human
 */
