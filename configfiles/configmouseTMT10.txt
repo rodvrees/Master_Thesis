@@ -1,8 +1,10 @@
 target=/home/robbe/ionbot/Fastas_and_DB/Mouse_DB/target_KR
 decoy=/home/robbe/ionbot/Fastas_and_DB/Mouse_DB/decoy_KR
 
-ptm=[4]carbamidomethyl,57.021464,fix,C,Post-translational
+ptm=[4]carbamidomethyl,57.021464,opt,C,Post-translational
 ptm=[35]oxidation,15.994915,opt,M,Post-translational
+ptm=[737]TMT6plex,229.162932,fix,K,Isotopic label
+ptm=[737]TMT6plex,229.162932,fix,N-term,Isotopic label
 
 ###TMT10
 ritol=0.002
