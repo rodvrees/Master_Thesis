@@ -17,17 +17,7 @@ println ionbot_files_dir ? "Directory $ionbot_files created" : "Could not create
 configfile = file("${params.configpath}")
 println "Config file used: $configfile"
 
-//Download raw files from PRIDE
-process PRIDE_download {
-    output:
-    path '*.raw' into Rawchannel
-    """
-    ppx -l "./" ${params.accession} "*.raw"
-    """  
-}
-
-Rawchannel.subscribe onNext: { println "File: ${it.name}" }
-
+Rawchannel = Channel.fromPath("$launchDir/$params.accession/raw_files/*.raw")
 //Converts raw files to mgf files
 process raw_to_mgf {
 

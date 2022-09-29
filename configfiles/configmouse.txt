@@ -1,5 +1,5 @@
-target=/home/robbe/ionbot/Fastas_and_DB/Mouse_DB/target_KR
-decoy=/home/robbe/ionbot/Fastas_and_DB/Mouse_DB/decoy_KR
+target=/home/robbe/ionbot/Fastas_and_DB/mousecrap_ionbot_db/target_KR
+decoy=/home/robbe/ionbot/Fastas_and_DB/mousecrap_ionbot_db/decoy_KR
 
 ptm=[4]carbamidomethyl,57.021464,opt,C,Post-translational
 ptm=[35]oxidation,15.994915,opt,M,Post-translational

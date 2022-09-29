@@ -10,3 +10,8 @@ Miniconda*
 *test.nf
 Fastas_and_DB/
 PRIDE_download.nf
+fragpipe/
+full_projects/
+mastersets/
+peptidoforms_per_cond/
+Processed_ionbot_files/
