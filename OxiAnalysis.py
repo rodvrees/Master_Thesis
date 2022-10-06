@@ -76,11 +76,12 @@ def get_positions(row):
     Parameter: df row
     Use with df.apply()
     """
-    if str == "None":
+    if row == "None":
             return None
-    if str != "":
-        lijst = str.split("|")
+    if row != "":
+        lijst = row.split("|")
         result = lijst[0::2]
+        result=list(map(lambda x: x.replace('0','N-term'),result))
         if len(result) == 1:
             return result[0]
         else:
