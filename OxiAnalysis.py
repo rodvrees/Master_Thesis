@@ -276,12 +276,17 @@ def methionine_overview(df, ax = None):
                         met_sulfoxide += 1
                     elif modifications == "[425]Dioxidation[M]":
                         met_sulfone += 1
+                    else: 
+                        non_modified += 1
                 elif type(modifications) == list:
                     for mod in modifications:
-                        if modifications == "[35]oxidation[M]":
+                        if mod == "[35]oxidation[M]":
                             met_sulfoxide += 1
-                        elif modifications == "[425]Dioxidation[M]":
+            
+                        elif mod == "[425]Dioxidation[M]":
                             met_sulfone += 1
+                        else:
+                            non_modified += 1
     labels = []
     sizes = []
     if non_modified != 0:
@@ -294,4 +299,58 @@ def methionine_overview(df, ax = None):
         sizes.append(met_sulfone)
         labels.append("Met Sulfone")
 
+    return ax.pie(sizes, labels=labels, autopct='%1.1f%%', shadow= True, startangle = 90)
+
+def cysteine_overview(df, ax = None):
+    """
+    Returns pie chart with distribution of 
+    non-modified cysteines, singly oxidized cysteines (Cys Sulfenic acid) and 
+    doubly oxidized cysteines (Cys sulenic acid) and triply oxidized cysteines (Cysteic acid)
+    Parameters: dataframe, ax name (default: ax, you can probably leave out this parameter)
+    """
+    import matplotlib.pyplot as plt
+    ax = ax or plt.gca()
+    filtered = df[df["matched_peptide"].str.contains("C")]
+    non_modified = 0
+    cys_sulfenic = 0
+    cys_sulfinic = 0
+    cys_cysteic = 0
+    for index, row in filtered.iterrows():
+                peptidoform = row['Peptidoform_name']
+                modifications = row['Modification']
+                if modifications == None:
+                    non_modified += 1
+                elif type(modifications) == str:
+                    if modifications == "[35]oxidation[C]":
+                        cys_sulfenic += 1
+                    elif modifications == "[425]Dioxidation[C]":
+                        cys_sulfinic += 1
+                    elif modifications == "[345]Trioxidation[C]":
+                        cys_cysteic += 1
+                    else:
+                        non_modified += 1
+                elif type(modifications) == list:
+                    for mod in modifications:
+                        if mod == "[35]oxidation[C]":
+                            cys_sulfenic += 1
+                        elif mod == "[425]Dioxidation[C]":
+                            cys_sulfinic += 1
+                        elif mod == "[345]Trioxidation[C]":
+                            cys_cysteic += 1
+                        else:
+                            non_modified += 1
+    labels = []
+    sizes = []
+    if non_modified != 0:
+        sizes.append(non_modified)
+        labels.append("Cys")
+    if cys_sulfenic != 0:
+        sizes.append(cys_sulfenic)
+        labels.append("Cys Sulfenic acid")
+    if cys_sulfinic != 0:
+        sizes.append(cys_sulfinic)
+        labels.append("Cys Sulfinic acid")
+    if cys_cysteic != 0:
+        sizes.append(cys_cysteic)
+        labels.append("Cys Cysteic acid")
     return ax.pie(sizes, labels=labels, autopct='%1.1f%%', shadow= True, startangle = 90)
