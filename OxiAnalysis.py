@@ -22,30 +22,43 @@ def peptidoform_name(row):
     """
     import re
     matched_peptide = row["matched_peptide"]
+    
     def splitatn(strng, sep, pos):
         strng = strng.split(sep)
         return sep.join(strng[:pos]), sep.join(strng[pos:])
 
+    #If no modifications, return None
     if row["modifications"] == "None":
         return matched_peptide
     else:
+        #Separate modifications into a list
         modifications = splitatn(row["modifications"],"|",2)
         modifications = [i for i in modifications if i]
 
     
     poslist = []
     modlist = []
+    #For every modification, get position-1 (because ionbot gives nth amino acid, starting from 1)
     for mod in modifications:
         pos = mod.split("|")[0]
-        if pos != "x":
+        if pos == "0":
+            poslist.append("N-TERM")
+        elif pos != "x": 
             poslist.append(int(pos)-1)
+    
+        #Get name of modification
         modi = mod.split("|")[1]
-        pattern = re.compile(pattern= r"\[\D\]")
+        #Remove modified amino acid from modification name
+        pattern = re.compile(pattern= r"\[\D+\]")
         modif = re.sub(pattern, "", modi)
         modlist.append(modif)
 
+    #Moddict {position: modification}
     moddict ={poslist[i]: modlist[i] for i in range(len(poslist))}
     peptidoform_list = []
+    #Reconstruct peptidoform
+    if "N-TERM" in moddict:
+        peptidoform_list.append(moddict["N-TERM"])
     for i, aa in enumerate(matched_peptide):
         if i in moddict:
             peptidoform_list.append(aa)
@@ -59,7 +72,7 @@ def peptidoform_name(row):
 #Get position of modification out of ionbot row (use with apply)
 def get_positions(row):
     """
-    Get position of modification out of ionbot row
+    Get position of modification out of ionbot modifications row
     Parameter: df row
     Use with df.apply()
     """
@@ -110,7 +123,7 @@ def oxidatively_modified(str):
 #Filters PSMs found in all replicates 
 def replicate_filter(df, n_of_replicates):
     """
-    Filters dataframe for only PSMs found in all replicates
+    Filters dataframe for only PSMs found in n replicates
     Parameters: dataframe, number of replicates
     """
     return df[df.groupby("Peptidoform_name")["spectrum_file"].transform('nunique') == n_of_replicates]
