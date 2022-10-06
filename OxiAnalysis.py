@@ -48,7 +48,7 @@ def peptidoform_name(row):
     
         #Get name of modification
         modi = mod.split("|")[1]
-        #Remove modified amino acid from modification name
+        #Remove modified amino acid from modification names
         pattern = re.compile(pattern= r"\[\D+\]")
         modif = re.sub(pattern, "", modi)
         modlist.append(modif)
