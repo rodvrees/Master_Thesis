@@ -127,7 +127,7 @@ def replicate_filter(df, n_of_replicates):
     Filters dataframe for only PSMs found in n replicates
     Parameters: dataframe, number of replicates
     """
-    return df[df.groupby("Peptidoform_name")["spectrum_file"].transform('nunique') == n_of_replicates]
+    return df[df.groupby("Peptidoform_name")["spectrum_file"].transform('nunique') >= n_of_replicates]
 
 #Makes modratios file of occurence of PTM/total PSMs
 def modratios(df):
@@ -136,19 +136,28 @@ def modratios(df):
     Parameter: df
     """
     import pandas as pd
-    peptidoforms = df["Modification"]
+    import re
+    matched_peptide = df["matched_peptide"]
+    AAdict = {"A" : 0, "R" : 0, "N" : 0, "D" : 0, "C" : 0, "Q" : 0, "E" : 0, "G" : 0, "H" : 0, "I" : 0, "K" : 0, "M" : 0, "F" : 0, "P" : 0, "S" : 0, "T" : 0, "W" : 0, "Y" : 0, "V" : 0}
+    for i, peptide in matched_peptide.items():
+        for AA in peptide:
+            AAdict[AA] += 1
+    modifications = df["Modification"]
     Modification = []
     Ratios = []
     for mod in modslist:
+        pattern = re.compile(r"\[\D+\]")
+        modified_AA = re.findall(pattern, mod)
+        modified_AA = modified_AA[0]
+        modified_AA = list(modified_AA)[1]
+
         Modification.append(mod)
         val = 0
-        total = 0
-        for i, peptidoform in peptidoforms.items():
-            if peptidoform == None:
-                total += 1
+        total = AAdict[modified_AA] if modified_AA in AAdict.keys() else 1
+        for i, modification in modifications.items():
+            if modification == None:
                 continue
-            elif mod in peptidoform:
-                total += 1
+            elif mod in modification:
                 val += 1
         Ratios.append(val/total)
     dt = {"Modification" : Modification, "Ratios" : Ratios}

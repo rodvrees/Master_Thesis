@@ -17,7 +17,7 @@ println ionbot_files_dir ? "Directory $ionbot_files created" : "Could not create
 configfile = file("${params.configpath}")
 println "Config file used: $configfile"
 
-Rawchannel = Channel.fromPath("$launchDir/$params.accession/raw_files/*.raw")
+Rawchannel = Channel.fromPath("$launchDir/$params.accession/*raw_files/*.raw")
 //Converts raw files to mgf files
 process raw_to_mgf {
 

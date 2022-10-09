@@ -16,3 +16,4 @@ mastersets/
 peptidoforms_per_cond/
 Processed_ionbot_files/
 __pycache__/
+Synapse/*.RAW
