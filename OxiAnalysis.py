@@ -363,3 +363,41 @@ def cysteine_overview(df, ax = None):
         sizes.append(cys_cysteic)
         labels.append("Cys Cysteic acid")
     return ax.pie(sizes, labels=labels, autopct='%1.1f%%', shadow= True, startangle = 90)
+
+def differentially_oxidized_psms(treatmentdf, controldf):
+    import re
+    #TODO: #4 Currently, non-oxidative mods would still give a problem here, since an oxidized PSM would appear in the list even though it also is found in the control, but it differs in a non-oxmod
+    #Currently this is fixed by only allowing one modification
+    """
+    Returns a list of peptidoforms that are oxidatively modified in the treatment data, but not in the control data (base PSM is found)
+    Also returns the amount of PSMs in this list
+    Parameters: treatmentdf, controldf
+    """
+    #Oxidatively modified PSMs in H2O2
+    Oxmod = treatmentdf[treatmentdf["Oxidatively_modified"] == True]
+    #Set of oxidatively modified peptidoforms
+    Oxmoddedset = set(Oxmod["Peptidoform_name"])
+    #Set of the base matched_peptides of these oxidatively modified peptidoforms
+    nonoxmoddedset = set(Oxmod["matched_peptide"])
+    #Oxidatively modified PSMs in control
+    Oxmodcontrol = controldf[controldf["Oxidatively_modified"] == True]
+    #Set of oxidatively modified peptidoforms
+    Oxmoddedcontrolset = set(Oxmodcontrol["Peptidoform_name"])
+    #Set of the base matched_peptides of these all peptidoforms
+    nonoxmoddedcontrolset = set(controldf["matched_peptide"])
+    #Oxidatively modified PSMs that occur in treatment but not in control
+    notoxmoddedincontrol = Oxmoddedset.difference(Oxmoddedcontrolset)
+
+    list = []
+    for i in notoxmoddedincontrol:     
+        matched_peptide = treatmentdf[treatmentdf["Peptidoform_name"] == i].iloc[0]["matched_peptide"]
+        pattern = re.compile(r"\[\d+\]")
+        listofmods = re.findall(pattern, i)
+        n_of_mods = len(listofmods)
+        if n_of_mods > 1:
+            continue
+        else:
+            if matched_peptide in nonoxmoddedcontrolset:
+                list.append(i)
+    result = "There are {} PSMs that are oxidized in the treatment data that are not oxidized in the control data".format(len(list))
+    return list, result
