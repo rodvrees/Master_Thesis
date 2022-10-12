@@ -368,6 +368,7 @@ def differentially_oxidized_psms(treatmentdf, controldf):
     import re
     #TODO: #4 Currently, non-oxidative mods would still give a problem here, since an oxidized PSM would appear in the list even though it also is found in the control, but it differs in a non-oxmod
     #Currently this is fixed by only allowing one modification
+    #TODO: #5 currently non modified PSMs are still returned. These are where mod site == x
     """
     Returns a list of peptidoforms that are oxidatively modified in the treatment data, but not in the control data (base PSM is found)
     Also returns the amount of PSMs in this list
@@ -383,7 +384,7 @@ def differentially_oxidized_psms(treatmentdf, controldf):
     Oxmodcontrol = controldf[controldf["Oxidatively_modified"] == True]
     #Set of oxidatively modified peptidoforms
     Oxmoddedcontrolset = set(Oxmodcontrol["Peptidoform_name"])
-    #Set of the base matched_peptides of these all peptidoforms
+    #Set of the base matched_peptides of all peptidoforms in controldf
     nonoxmoddedcontrolset = set(controldf["matched_peptide"])
     #Oxidatively modified PSMs that occur in treatment but not in control
     notoxmoddedincontrol = Oxmoddedset.difference(Oxmoddedcontrolset)

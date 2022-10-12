@@ -17,3 +17,7 @@ peptidoforms_per_cond/
 Processed_ionbot_files/
 __pycache__/
 Synapse/*.RAW
+FlashLFQ/
+dotnet-install.sh
+FlashLFQ.zip
+zPXD*/
