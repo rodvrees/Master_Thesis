@@ -1,4 +1,6 @@
 #list of Oxidative modifications
+from cmath import nan
+from numpy import NaN
 from pyteomics import mass as pymass
 db = pymass.Unimod()
 modslist = []
@@ -115,7 +117,9 @@ def oxidatively_modified(str):
     Use with df.apply()
     """
     for mod in modslist:
-        if mod in str:
+        if type(str) == float:
+            return False
+        elif mod in str:
             return True
         else:
             continue
