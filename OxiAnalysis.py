@@ -406,3 +406,63 @@ def differentially_oxidized_psms(treatmentdf, controldf):
                 list.append(i)
     result = "There are {} PSMs that are oxidized in the treatment data that are not oxidized in the control data".format(len(list))
     return list, result
+
+from cmath import nan
+def flashLFQmods(str):
+    lijst = str.split("|")
+    result = lijst[1::2]
+    if len(result) == 0:
+        return "None"
+    elif len(result) == 1:
+        return result[0]
+    return result
+
+import numpy as np
+def summedintensities(quantdf):
+    quantdf["Modifications"] = quantdf["Sequence"].apply(flashLFQmods)
+    quantex = quantdf.explode("Modifications")
+    quantex["Oxmod?"] = quantex["Modifications"].apply(oxidatively_modified)
+    quantexox = quantex[quantex["Oxmod?"] == True]
+    quantexox.drop(list(quantexox.filter(regex = 'Detection Type')), axis = 1, inplace = True)
+    summedintensitiesdf = quantexox.groupby("Modifications").sum().reset_index()
+    numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+    for c in [c for c in summedintensitiesdf.columns if summedintensitiesdf[c].dtype in numerics]:
+        summedintensitiesdf[c] = np.log2(summedintensitiesdf[c])
+    summedintensitiesdf = summedintensitiesdf.replace(float("-inf"), 0)
+
+    return summedintensitiesdf 
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import scipy.stats as stats
+
+def boxplots(Control_df, Treatment_df, labels):
+    for index, row in Control_df.iterrows():
+        for index2, row2 in Treatment_df.iterrows():
+            if index == index2:
+                mod = row["Modifications"]
+                dataControl = Control_df.iloc[index][1:]
+                dataControl = dataControl.astype(float)
+                dataTreatment = Treatment_df.iloc[index][1:]
+                dataTreatment = dataTreatment.astype(float)
+                data = [dataControl, dataTreatment] #TODO: #7 Probably better to put both these in a df together, then you can more easily use statannotations
+                n_of_tests = Control_df.shape[0]
+                #One-sided Mann-Whitney U test
+                pval = stats.mannwhitneyu(dataControl,dataTreatment, alternative = 'less').pvalue #alternative less or two-sided? 
+                if pval < 0.05: #TODO: #6 Multiple hypothesis testing correction needed?
+                    formatted_pvalue = f'P-value = {pval:.2e}'
+                    fig = plt.figure()
+                    ax = sns.boxplot(data=data)
+                    sns.stripplot(data=data, alpha = 0.3)
+                    ax.set_xticks(range(2))
+                    ax.set_xticklabels(labels)
+                    plt.text(x = 0, y = min(min(dataControl), min(dataTreatment))-4, s="P-value: {:.3f}".format(pval))
+                    plt.title(mod)
+                    plt.ylabel("log2(summed modified peptide intensities)")
+                    plt.show()
+
+import inspect
+def retrieve_name(var):
+    callers_local_vars = inspect.currentframe().f_back.f_locals.items()
+    return [var_name for var_name, var_val in callers_local_vars if var_val is var]
+                    
