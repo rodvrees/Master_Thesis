@@ -10,12 +10,16 @@ default = human
 */
 params.configpath = "$launchDir/configfiles/confighuman.txt"
 
+//Experimental design file path
+params.design = "$launchdir/ExperimentalDesign.tsv"
+
 //Create needed directories
 ionbot_files = file("./${params.accession}/ionbot_files")
 ionbot_files_dir = ionbot_files.mkdirs()
 println ionbot_files_dir ? "Directory $ionbot_files created" : "Could not create directory: $ionbot_files_dir"
 configfile = file("${params.configpath}")
 println "Config file used: $configfile"
+exdesign = file("${params.configpath}")
 
 //Download raw files from PRIDE
 process PRIDE_download {
@@ -60,5 +64,24 @@ process ionbotsearch {
     """
 }
 
+//TODO: #8 FlashLFQ
+process prequant {
+    """
+    python $launchDir/ionbot2FlashLFQ.py $launchDir/${params.accession}/ionbot_files/*/ionbot.first.csv
+    mv flashlfq.tsv $launchDir/${params.accession}/ionbot_files
+    """
+}
+
+flashlfqtsv = file("$launchdir/${params.accession}/ionbot_files/flashlfq.tsv")
+process FlashLFQ {
+
+    input:
+    each rawFile from Rawchannel
+    file(exdesign)
+    file(flashlfqtsv)
+
+    """
+    mv ${rawFile} $launchDir/${params.accession}/raw_files
+}
 
     

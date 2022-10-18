@@ -425,10 +425,10 @@ def summedintensities(quantdf):
     quantexox = quantex[quantex["Oxmod?"] == True]
     quantexox.drop(list(quantexox.filter(regex = 'Detection Type')), axis = 1, inplace = True)
     summedintensitiesdf = quantexox.groupby("Modifications").sum().reset_index()
-    numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
-    for c in [c for c in summedintensitiesdf.columns if summedintensitiesdf[c].dtype in numerics]:
-        summedintensitiesdf[c] = np.log2(summedintensitiesdf[c])
-    summedintensitiesdf = summedintensitiesdf.replace(float("-inf"), 0)
+    # numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+    # # for c in [c for c in summedintensitiesdf.columns if summedintensitiesdf[c].dtype in numerics]:
+    # #     summedintensitiesdf[c] = np.log2(summedintensitiesdf[c])
+    # # summedintensitiesdf = summedintensitiesdf.replace(float("-inf"), 0)
 
     return summedintensitiesdf 
 
@@ -443,26 +443,40 @@ def boxplots(Control_df, Treatment_df, labels):
                 mod = row["Modifications"]
                 dataControl = Control_df.iloc[index][1:]
                 dataControl = dataControl.astype(float)
+                dataControl = dataControl[dataControl != 0]
                 dataTreatment = Treatment_df.iloc[index][1:]
                 dataTreatment = dataTreatment.astype(float)
+                dataTreatment = dataTreatment[dataTreatment !=0]
                 data = [dataControl, dataTreatment] #TODO: #7 Probably better to put both these in a df together, then you can more easily use statannotations
                 n_of_tests = Control_df.shape[0]
-                #One-sided Mann-Whitney U test
-                pval = stats.mannwhitneyu(dataControl,dataTreatment, alternative = 'less').pvalue #alternative less or two-sided? 
-                if pval < 0.05: #TODO: #6 Multiple hypothesis testing correction needed?
-                    formatted_pvalue = f'P-value = {pval:.2e}'
-                    fig = plt.figure()
-                    ax = sns.boxplot(data=data)
-                    sns.stripplot(data=data, alpha = 0.3)
-                    ax.set_xticks(range(2))
-                    ax.set_xticklabels(labels)
-                    plt.text(x = 0, y = min(min(dataControl), min(dataTreatment))-4, s="P-value: {:.3f}".format(pval))
-                    plt.title(mod)
-                    plt.ylabel("log2(summed modified peptide intensities)")
-                    plt.show()
+                
+                if dataTreatment.size != 0 and dataControl.size != 0:
+                    #One-sided Mann-Whitney U test
+                    pval = stats.mannwhitneyu(dataControl,dataTreatment, alternative = 'less').pvalue 
+                    if pval < 0.05: #TODO: #6 Multiple hypothesis testing correction needed?
+                        formatted_pvalue = f'P-value = {pval:.2e}'
+                        fig = plt.figure()
+                        ax = sns.boxplot(data=data)
+                        sns.stripplot(data=data, alpha = 0.3)
+                        ax.set_xticks(range(2))
+                        ax.set_xticklabels(labels)
+                        plt.text(x = 0, y = min(min(dataControl), min(dataTreatment))-4, s="P-value: {:.3f}".format(pval))
+                        plt.title(mod)
+                        plt.ylabel("log2(summed modified peptide intensities)")
+                        plt.show()
 
 import inspect
 def retrieve_name(var):
     callers_local_vars = inspect.currentframe().f_back.f_locals.items()
     return [var_name for var_name, var_val in callers_local_vars if var_val is var]
+
+from sklearn.preprocessing import QuantileTransformer
+def quantile_transform(quantdf, cols_to_be_transformed):
+    scaler = QuantileTransformer()
+    quantdf[cols_to_be_transformed] = quantdf[cols_to_be_transformed].transform(np.log2)
+    quantdf.replace([np.inf, -np.inf], 0, inplace=True)
+    quantdf[cols_to_be_transformed] = scaler.fit_transform(quantdf[cols_to_be_transformed])
+    return quantdf
+
+    #TODO: change zeroes into nans before fit transform so zeroes don't get used
                     
