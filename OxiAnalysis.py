@@ -6,14 +6,18 @@ db = pymass.Unimod()
 modslist = []
 for p in range(len(db.mods)):
     for pp in db.mods[p]['specificity']:
-        if db.mods[p]['record_id'] in [35, 53, 129, 130, 205, 206, 275, 288, 318, 319, 335, 340, 342, 344, 345, 348, 349, 350, 351, 352, 354, 
-        359, 360, 368, 378, 392, 401, 421, 425, 534, 540, 548, 569, 720, 721, 743, 743, 860, 936, 936, 937, 949, 1384, 1914, 1915, 1916, 1917, 1918, 
+        if db.mods[p]['record_id'] in [6, 35, 53, 205, 206, 275, 288, 318, 335, 340, 344, 345, 350, 351, 352, 354, 
+        359, 360, 368, 378, 392, 401, 421, 425, 534, 540, 548, 720, 721, 743, 860, 936, 937, 949, 1384, 1914, 1915, 1916, 1917, 1918, 
         1922, 1923, 1924, 1925, 1926, 1927, 1928, 1929]:
             t = db.mods[p]['title']
             t = t.replace("[",":").replace("]",":")
             mod = "[" + str(db.mods[p]['record_id']) + "]" + t + "[" + pp['site'] + "]"
             modslist.append(mod)
 modslist.append('[35]oxidation[M]')
+unwanted = ["[6]Carboxymethyl[N-term]", "[6]Carboxymethyl[C]","[6]Carboxymethyl[W]","[6]Carboxymethyl[U]", "[35]Oxidation[G]", "[53]HNE[A]","[53]HNE[L]","[206]Delta:H(4)C(3)O(1)[C]", "[378]Carboxyethyl[H]","[401]Didehydro[S]","[401]Didehydro[Y]","[401]Didehydro[K]","[345]Trioxidation[Y]","[340]Bromo[F]","[340]Bromo[H]","[340]Bromo[W]","[275]Nitrosyl[Y]", "[392]Quinone[Y]", "[421]Sulfide[D]", "[421]Sulfide[W]","[425]Dioxidation[U]", "[425]Dioxidation[R]", "[425]Dioxidation[E]","[425]Dioxidation[I]","[425]Dioxidation[L]","[425]Dioxidation[V]", "[936]Chlorination[W]", "[937]dichlorination[C]"]
+for ele in unwanted:
+    modslist.remove(ele)
+#modslist.remove('')
 
 
 def peptidoform_name(row):
@@ -142,7 +146,7 @@ def modratios(df):
     import pandas as pd
     import re
     matched_peptide = df["matched_peptide"]
-    AAdict = {"A" : 0, "R" : 0, "N" : 0, "D" : 0, "C" : 0, "Q" : 0, "E" : 0, "G" : 0, "H" : 0, "I" : 0, "K" : 0, "M" : 0, "F" : 0, "P" : 0, "S" : 0, "T" : 0, "W" : 0, "Y" : 0, "V" : 0}
+    AAdict = {"A" : 0, "R" : 0, "N" : 0, "D" : 0, "C" : 0, "Q" : 0, "E" : 0, "G" : 0, "H" : 0, "I" : 0, "K" : 0, "M" : 0, "F" : 0, "P" : 0, "S" : 0, "T" : 0, "W" : 0, "Y" : 0, "V" : 0, "L" : 0}
     for i, peptide in matched_peptide.items():
         for AA in peptide:
             AAdict[AA] += 1
@@ -279,6 +283,7 @@ def methionine_overview(df, ax = None):
     non_modified = 0
     met_sulfoxide = 0
     met_sulfone = 0
+    homocysteic_acid = 0
     for index, row in filtered.iterrows():
                 peptidoform = row['Peptidoform_name']
                 modifications = row['Modification']
@@ -289,6 +294,8 @@ def methionine_overview(df, ax = None):
                         met_sulfoxide += 1
                     elif modifications == "[425]Dioxidation[M]":
                         met_sulfone += 1
+                    elif modifications == "[1384]Homocysteic_acid[M]":
+                        homocysteic_acid += 1
                     else: 
                         non_modified += 1
                 elif type(modifications) == list:
@@ -298,6 +305,9 @@ def methionine_overview(df, ax = None):
             
                         elif mod == "[425]Dioxidation[M]":
                             met_sulfone += 1
+                        elif mod == "[1384]Homocysteic_acid[M]":
+                            homocysteic_acid += 1
+
                         else:
                             non_modified += 1
     labels = []
@@ -311,7 +321,9 @@ def methionine_overview(df, ax = None):
     if met_sulfone != 0:
         sizes.append(met_sulfone)
         labels.append("Met Sulfone")
-
+    if homocysteic_acid != 0:
+        sizes.append(homocysteic_acid)
+        labels.append("Homocysteic acid")
     return ax.pie(sizes, labels=labels, autopct='%1.1f%%', shadow= True, startangle = 90)
 
 def cysteine_overview(df, ax = None):
@@ -435,8 +447,9 @@ def summedintensities(quantdf):
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
-
+from statsmodels.stats.multitest import multipletests
 def boxplots(Control_df, Treatment_df, labels):
+    pvallist = []
     for index, row in Control_df.iterrows():
         for index2, row2 in Treatment_df.iterrows():
             if index == index2:
@@ -452,7 +465,69 @@ def boxplots(Control_df, Treatment_df, labels):
                 
                 if dataTreatment.size != 0 and dataControl.size != 0:
                     #One-sided Mann-Whitney U test
-                    pval = stats.mannwhitneyu(dataControl,dataTreatment, alternative = 'less').pvalue 
+                    pval = stats.mannwhitneyu(dataControl,dataTreatment, alternative = 'less').pvalue
+                    pvallist.append(pval) 
+                    if pval < 0.05: #TODO: #6 Multiple hypothesis testing correction needed?
+                        formatted_pvalue = f'P-value = {pval:.2e}'
+                        fig = plt.figure()
+                        ax = sns.boxplot(data=data)
+                        sns.stripplot(data=data, alpha = 0.3)
+                        ax.set_xticks(range(2))
+                        ax.set_xticklabels(labels)
+                        
+                        plt.text(x = 0, y = min(min(dataControl), min(dataTreatment))-4, s="P-value: {:.3f}".format(pval))
+                        plt.title(mod)
+                        plt.ylabel("log2(summed modified peptide intensities)")
+                        plt.show()
+
+import inspect
+def retrieve_name(var):
+    callers_local_vars = inspect.currentframe().f_back.f_locals.items()
+    return [var_name for var_name, var_val in callers_local_vars if var_val is var]
+
+from sklearn.preprocessing import QuantileTransformer
+# def quantile_transform(quantdf, cols_to_be_transformed):
+#     scaler = QuantileTransformer()
+#     quantdf[cols_to_be_transformed] = quantdf[cols_to_be_transformed].transform(np.log2)
+#     quantdf.replace([np.inf, -np.inf], 0, inplace=True)
+#     quantdf.replace(0, np.nan, inplace=True)
+#     quantdf[cols_to_be_transformed] = scaler.fit_transform(quantdf[cols_to_be_transformed])
+#     return quantdf
+from sklearn.preprocessing import QuantileTransformer
+def quantile_transform(quantdf, cols_to_be_transformed):
+    scaler = QuantileTransformer(output_distribution= "normal")
+    quantdf[cols_to_be_transformed] = quantdf[cols_to_be_transformed].transform(np.log2)
+    quantdf.replace([np.inf, -np.inf], np.nan, inplace=True)
+    #quantdf.replace(0, np.nan, inplace=True)
+    quantdf[cols_to_be_transformed] = scaler.fit_transform(quantdf[cols_to_be_transformed])
+    quantdf[cols_to_be_transformed] = quantdf[cols_to_be_transformed].transform(lambda x: x - (quantdf[cols_to_be_transformed[0]].min()))
+    return quantdf
+
+import re
+def get_unimod_acc(str):
+    pattern = re.compile(r'\[([0-9]*?)\]')
+    lijst = re.findall(pattern, str)
+    return lijst[0]
+
+def boxplots_not_specific(controldf, treatmentdf,labels):
+    pvallist = []
+    for index, row in controldf.iterrows():
+        for index2, row2 in treatmentdf.iterrows():
+            if index == index2:
+                mod = row["UnimodAccession"]
+                dataControl = controldf.iloc[index][1:]
+                dataControl = dataControl.astype(float)
+                dataControl = dataControl[dataControl != 0]
+                dataTreatment = treatmentdf.iloc[index][1:]
+                dataTreatment = dataTreatment.astype(float)
+                dataTreatment = dataTreatment[dataTreatment !=0]
+                data = [dataControl, dataTreatment] #TODO: #7 Probably better to put both these in a df together, then you can more easily use statannotations
+                n_of_tests = controldf.shape[0]
+                
+                if dataTreatment.size != 0 and dataControl.size != 0:
+                    #One-sided Mann-Whitney U test
+                    pval = stats.mannwhitneyu(dataControl,dataTreatment, alternative = 'less').pvalue
+                    pvallist.append(pval) 
                     if pval < 0.05: #TODO: #6 Multiple hypothesis testing correction needed?
                         formatted_pvalue = f'P-value = {pval:.2e}'
                         fig = plt.figure()
@@ -465,18 +540,29 @@ def boxplots(Control_df, Treatment_df, labels):
                         plt.ylabel("log2(summed modified peptide intensities)")
                         plt.show()
 
-import inspect
-def retrieve_name(var):
-    callers_local_vars = inspect.currentframe().f_back.f_locals.items()
-    return [var_name for var_name, var_val in callers_local_vars if var_val is var]
-
-from sklearn.preprocessing import QuantileTransformer
-def quantile_transform(quantdf, cols_to_be_transformed):
-    scaler = QuantileTransformer()
-    quantdf[cols_to_be_transformed] = quantdf[cols_to_be_transformed].transform(np.log2)
-    quantdf.replace([np.inf, -np.inf], 0, inplace=True)
-    quantdf[cols_to_be_transformed] = scaler.fit_transform(quantdf[cols_to_be_transformed])
-    return quantdf
-
-    #TODO: change zeroes into nans before fit transform so zeroes don't get used
-                    
+import matplotlib.pyplot as plt
+import seaborn as sns
+import scipy.stats as stats
+from statsmodels.stats.multitest import multipletests
+def multipletest(Control_df, Treatment_df):
+    pvallist = []
+    for index, row in Control_df.iterrows():
+        for index2, row2 in Treatment_df.iterrows():
+            if index == index2:
+                mod = row["UnimodAccession"]
+                dataControl = Control_df.iloc[index][1:]
+                dataControl = dataControl.astype(float)
+                dataControl = dataControl[dataControl != 0]
+                dataTreatment = Treatment_df.iloc[index][1:]
+                dataTreatment = dataTreatment.astype(float)
+                dataTreatment = dataTreatment[dataTreatment !=0]
+                data = [dataControl, dataTreatment] #TODO: #7 Probably better to put both these in a df together, then you can more easily use statannotations
+                n_of_tests = Control_df.shape[0]
+                
+                if dataTreatment.size != 0 and dataControl.size != 0:
+                    #One-sided Mann-Whitney U test
+                    pval = stats.mannwhitneyu(dataControl,dataTreatment, alternative = 'less').pvalue
+                    pvallist.append(pval) 
+    
+    corrected_pvals = multipletests(pvallist, method='fdr_bh')[1]
+    return pvallist, corrected_pvals

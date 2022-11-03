@@ -10,11 +10,11 @@ default = human
 */
 params.configpath = "$launchDir/configfiles/confighuman.txt"
 
-//Experimental design file path
-params.design = "$launchdir/ExperimentalDesign.tsv"
+// //Experimental design file path
+// params.design = "$launchdir/ExperimentalDesign.tsv"
 
 //Create needed directories
-ionbot_files = file("./${params.accession}/ionbot_files")
+ionbot_files = file("./ionbot_0.9.5/${params.accession}/ionbot_files")
 ionbot_files_dir = ionbot_files.mkdirs()
 println ionbot_files_dir ? "Directory $ionbot_files created" : "Could not create directory: $ionbot_files_dir"
 configfile = file("${params.configpath}")
@@ -51,7 +51,7 @@ process raw_to_mgf {
 //search mgf files with ionbot
 process ionbotsearch {
 
-    container 'gcr.io/omega-cloud-195908/ionbot:v0.9.0'
+    container 'gcr.io/omega-cloud-195908/ionbot:v0.9.5'
     cpus 16
 
     input:
@@ -64,24 +64,24 @@ process ionbotsearch {
     """
 }
 
-//TODO: #8 FlashLFQ
-process prequant {
-    """
-    python $launchDir/ionbot2FlashLFQ.py $launchDir/${params.accession}/ionbot_files/*/ionbot.first.csv
-    mv flashlfq.tsv $launchDir/${params.accession}/ionbot_files
-    """
-}
+// //TODO: #8 FlashLFQ
+// process prequant {
+//     """
+//     python $launchDir/ionbot2FlashLFQ.py $launchDir/${params.accession}/ionbot_files/*/ionbot.first.csv
+//     mv flashlfq.tsv $launchDir/${params.accession}/ionbot_files
+//     """
+// }
 
-flashlfqtsv = file("$launchdir/${params.accession}/ionbot_files/flashlfq.tsv")
-process FlashLFQ {
+// flashlfqtsv = file("$launchdir/${params.accession}/ionbot_files/flashlfq.tsv")
+// process FlashLFQ {
 
-    input:
-    each rawFile from Rawchannel
-    file(exdesign)
-    file(flashlfqtsv)
+//     input:
+//     each rawFile from Rawchannel
+//     file(exdesign)
+//     file(flashlfqtsv)
 
-    """
-    mv ${rawFile} $launchDir/${params.accession}/raw_files
-}
+//     """
+//     mv ${rawFile} $launchDir/${params.accession}/raw_files
+// }
 
     

@@ -11,7 +11,7 @@ def is_unlocalized(x):
 
 def get_mass(x):
     if x["is_unlocalized"] == False:
-        return x["peptide_mass"]/10
+        return x["peptide_mass"]
     return x["precursor_mass"]
 
 def remove_extension(x):
