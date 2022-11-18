@@ -19,6 +19,7 @@ import logging
 import importlib
 importlib.reload(OA)
 import warnings; warnings.simplefilter('ignore')
+import random
 
 logging.basicConfig(level=logging.INFO)
 def seqmatch(alignment, pos): #TODO do sanity check met if nieuw gemapte AA == doel AA of check nog even hoe beter op te lossen
@@ -59,12 +60,15 @@ def download_pdb(pdbcode, datadir, downloadurl="https://files.rcsb.org/download/
     pdbfn = pdbcode + ".pdb"
     url = downloadurl + pdbfn
     outfnm = os.path.join(datadir, pdbfn)
-    try:
-        urllib.request.urlretrieve(url, outfnm)
+    if os.path.isfile(outfnm):
         return outfnm
-    except Exception as err:
-        print(str(err), file=sys.stderr)
-        return None
+    else:
+        try:
+            urllib.request.urlretrieve(url, outfnm)
+            return outfnm
+        except Exception as err:
+            print(str(err), file=sys.stderr)
+            return None
 session = requests.Session()
 retry = Retry(connect=3, backoff_factor=0.5)
 adapter = HTTPAdapter(max_retries=retry)
@@ -83,9 +87,10 @@ os.chdir("/home/robbe/ionbot/RSA_files")
 logging.info('Writing result files to {}'.format(os.getcwd()))
 
 with open("RSA.txt", "w") as f:
+    f.write("Modification\tUniprot_ID\tUniprot_pos\tPDB_ID\tPDB_pos\tTries\tRSA\tStatus\tControl_RSA\tControl_Status\n")
     # for each mod, get the peptidoforms that had at least 10 PSMs over all datasets
     for mod in OA.modslist:
-        f.write("------------RSA values for {}------------\n".format(mod))
+        #f.write("------------RSA values for {}------------\n".format(mod))
         logging.info('Calculating RSA for residues modified with {}'.format(mod))
         moddf = g10[g10["unexpected_modification"] == mod]
         #get modified AA for current modification
@@ -109,6 +114,7 @@ with open("RSA.txt", "w") as f:
 
         else:  
             check_list = []
+            control_list = []
             PDBnotfound = 0
             PDBfilenotfound = 0
             noDSSP = 0
@@ -126,82 +132,104 @@ with open("RSA.txt", "w") as f:
                 baseUrl="http://www.uniprot.org/uniprot/"
                 currentUrl=baseUrl+protein+".fasta"
                 sleep(3)
-                response = session.post(currentUrl)
-                cData=''.join(response.text)
+                try:
+                    response = session.post(currentUrl)
+                    cData=''.join(response.text)
 
-                Seq=StringIO(cData)
-                pSeq=SeqIO.parse(Seq,'fasta')
-                
-                for record in pSeq:
-                    Uniprotseq = record.seq
-                #first search result in PDB for Uniprot Accession gives PDB ID
-                if found_pdbs != None:
-                    tries = 0
-                    for pdb_acc in found_pdbs:
-                        tries += 1
-                        if tries <= 5:
-                            PDB_ID = pdb_acc
-                            #dictionary to convert PDB file sequence to one-letter code
-                            d3to1 = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K',
-                            'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N', 
-                            'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 
-                            'ALA': 'A', 'VAL':'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M'}
-                            #Download PDB file
-                            pdb_file = download_pdb(PDB_ID, '/home/robbe/ionbot/PDB_files')
-
-                            #For large structures, PDB file might not be available, and for those, DSSP can't be used
-                            if pdb_file != None:
-                                # run parser
-                                parser = PDBParser(QUIET=True)
-                                structure = parser.get_structure('struct', pdb_file)    
-
-                                # iterate each model, chain, and residue
-                                # printing out the sequence for each chain
-                                # Together forms PDBseq
-                                for model in structure:
-                                    PDBseqlist = []
-                                    for chain in model:
-                                        
-                                        for residue in chain:
-                                            if residue.resname in d3to1:
-                                                PDBseqlist.append(d3to1[residue.resname])
-                                                PDBseq = "".join(PDBseqlist)
-                                
-                                #PDB sequence and Uniprot sequence often don't fully correspond. Because ionbot uses Uniprot seq to localize modification site, but DSSP algorithm uses PDB seq, 
-                                #The modification site for Uniprot seq first needs to mapped onto the site for PDB seq, to do this, we align the sequences
-                                alignments = pairwise2.align.globalxx(Uniprotseq, PDBseq)
-
-                                #seqmatch gives the index of the modification site on the PDB sequence
-                                m = seqmatch(alignments[0], pos)
-                                model = structure[0]
-                                
-                                try:
-                                    dssp = DSSP(model, pdb_file)
-                                
-                                    a_key = list(dssp)
-                                    #DSSP sometimes has unknown residues include in the sequence (denoted as X), if these are removed, you are left with the same as the PDBseq
-                                    for i in a_key:
-                                        if i[1] == "X":
-                                            a_key.remove(i)
-                                    #if matched amino acid matches the modified amino acid (i.e. alignment was succesful), append RSA to list
-                                    if m != None:
+                    Seq=StringIO(cData)
+                    pSeq=SeqIO.parse(Seq,'fasta')
                     
-                                        if a_key[m][1] == AA:
-                                            RSA = a_key[m][3]
-                                            check_list.append(RSA)
-                                            f.write("{}\t{}\t{}\t{}\t{}\t{}\n".format(protein, str(pos), PDB_ID, str(m+1),str(tries), str(RSA)))
-                                            break
-                                    else:
+                    for record in pSeq:
+                        Uniprotseq = record.seq
+                    #first search result in PDB for Uniprot Accession gives PDB ID
+                    if found_pdbs != None:
+                        tries = 0
+                        for pdb_acc in found_pdbs:
+                            tries += 1
+                            if tries <= 5:
+                                PDB_ID = pdb_acc
+                                #dictionary to convert PDB file sequence to one-letter code
+                                d3to1 = {'CYS': 'C', 'ASP': 'D', 'SER': 'S', 'GLN': 'Q', 'LYS': 'K',
+                                'ILE': 'I', 'PRO': 'P', 'THR': 'T', 'PHE': 'F', 'ASN': 'N', 
+                                'GLY': 'G', 'HIS': 'H', 'LEU': 'L', 'ARG': 'R', 'TRP': 'W', 
+                                'ALA': 'A', 'VAL':'V', 'GLU': 'E', 'TYR': 'Y', 'MET': 'M'}
+                                #Download PDB file
+                                pdb_file = download_pdb(PDB_ID, '/home/robbe/ionbot/PDB_files')
+
+                                #For large structures, PDB file might not be available, and for those, DSSP can't be used
+                                if pdb_file != None:
+                                    # run parser
+                                    parser = PDBParser(QUIET=True)
+                                    structure = parser.get_structure('struct', pdb_file)    
+
+                                    # iterate each model, chain, and residue
+                                    # printing out the sequence for each chain
+                                    # Together forms PDBseq
+                                    for model in structure:
+                                        PDBseqlist = []
+                                        for chain in model:
+                                            
+                                            for residue in chain:
+                                                if residue.resname in d3to1:
+                                                    PDBseqlist.append(d3to1[residue.resname])
+                                                    PDBseq = "".join(PDBseqlist)
+                                    
+                                    #PDB sequence and Uniprot sequence often don't fully correspond. Because ionbot uses Uniprot seq to localize modification site, but DSSP algorithm uses PDB seq, 
+                                    #The modification site for Uniprot seq first needs to mapped onto the site for PDB seq, to do this, we align the sequences
+                                    alignments = pairwise2.align.globalxx(Uniprotseq, PDBseq)
+
+                                    #seqmatch gives the index of the modification site on the PDB sequence
+                                    m = seqmatch(alignments[0], pos)
+                                    model = structure[0]
+                                    
+                                    try:
+                                        dssp = DSSP(model, pdb_file)
+                                    
+                                        a_key = list(dssp)
+                                        #DSSP sometimes has unknown residues include in the sequence (denoted as X), if these are removed, you are left with the same as the PDBseq
+                                        for i in a_key:
+                                            if i[1] == "X":
+                                                a_key.remove(i)
+                                        #if matched amino acid matches the modified amino acid (i.e. alignment was succesful), append RSA to list
+                                        if m != None:
+                        
+                                            if a_key[m][1] == AA:
+                                                RSA = a_key[m][3]
+                                                check_list.append(RSA)
+                                                if RSA > 0.2:
+                                                    status = "Accessible"
+                                                else:
+                                                    status = "Buried"
+                                                length = len(a_key)
+                                                testing = True
+                                                while testing == True:
+                                                    val = random.randint(0,length)
+                                                    if val != m:
+                                                        if a_key[val][1] == AA:
+                                                            RSAcontrol = a_key[val][3]
+                                                            control_list.append(RSAcontrol)
+                                                            if RSAcontrol > 0.2:
+                                                                controlstatus = "Accessible"
+                                                            else:
+                                                                controlstatus = "Buried"
+                                                            testing = False
+
+
+                                                f.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(mod, protein, str(pos), PDB_ID, str(m+1),str(tries), str(RSA), status, RSAcontrol, controlstatus))
+                                                break
+                                        else:
+                                            continue
+                                    except Exception:
+                                        noDSSP +=1
                                         continue
-                                except Exception:
-                                    noDSSP +=1
-                                    continue
+                                else:
+                                    PDBfilenotfound += 1
                             else:
-                                PDBfilenotfound += 1
-                        else:
-                            PDBnotfound +=1
-                            break
-                else:
+                                PDBnotfound +=1
+                                break
+                    else:
+                        PDBnotfound += 1
+                except requests.exceptions.ConnectionError:
                     PDBnotfound += 1
         
         #TODO #9 don't do RSA file for each mod, but one for all with headers
@@ -212,7 +240,7 @@ with open("RSA.txt", "w") as f:
             logging.warning("{} PDB files could not be downloaded".format(PDBfilenotfound))
             logging.warning("{} RSA values could not be calculated by DSSP".format(noDSSP))
             logging.warning("{} modification sites could not be succesfully mapped from the Uniprot sequence on the PDB sequence".format(len(pro_poslist) - len(check_list) - PDBnotfound - PDBfilenotfound - noDSSP))
-            logging.info("Writing {}_RSA output file...".format(mod))
+            logging.info("Writing {} RSA values to output file...".format(mod))
             # #Print all RSA's to file                    
             # with open("{}_RSA.txt".format(mod),'w') as f:
             #     for i in check_list:

@@ -90,7 +90,8 @@ def get_positions(row):
     if row != "":
         lijst = row.split("|")
         result = lijst[0::2]
-        result=list(map(lambda x: x.replace('0','N-term'),result))
+        #result=list(map(lambda x: x.replace('0','N-term'),result))
+        result = list(map(lambda x: re.sub(r"\b\0", "N-term", x), result))
         if len(result) == 1:
             return result[0]
         else:
