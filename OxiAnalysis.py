@@ -479,7 +479,7 @@ def boxplots(Control_df, Treatment_df, labels):
                         ax.set_xticks(range(2))
                         ax.set_xticklabels(labels)
                         
-                        plt.text(x = 0, y = min(min(dataControl), min(dataTreatment))-4, s="P-value: {:.3f}".format(pval))
+                        plt.text(x = 0, y = min(min(dataControl), min(dataTreatment))-4, s="P-value: {:.5f}".format(pval))
                         plt.title(mod)
                         plt.ylabel("log2(summed modified peptide intensities)")
                         plt.show()
@@ -489,7 +489,6 @@ def retrieve_name(var):
     callers_local_vars = inspect.currentframe().f_back.f_locals.items()
     return [var_name for var_name, var_val in callers_local_vars if var_val is var]
 
-from sklearn.preprocessing import QuantileTransformer
 # def quantile_transform(quantdf, cols_to_be_transformed):
 #     scaler = QuantileTransformer()
 #     quantdf[cols_to_be_transformed] = quantdf[cols_to_be_transformed].transform(np.log2)
@@ -533,7 +532,7 @@ def boxplots_not_specific(controldf, treatmentdf,labels):
                     pval = stats.mannwhitneyu(dataControl,dataTreatment, alternative = 'less').pvalue
                     pvallist.append(pval) 
                     if pval < 0.05: #TODO: #6 Multiple hypothesis testing correction needed?
-                        formatted_pvalue = f'P-value = {pval:.2e}'
+                        formatted_pvalue = f'P-value = {pval:.4e}'
                         fig = plt.figure()
                         ax = sns.boxplot(data=data)
                         sns.stripplot(data=data, alpha = 0.3)

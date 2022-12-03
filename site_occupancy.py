@@ -115,14 +115,14 @@ def RSA_calc(row):
 
 
 
-quant = pd.read_csv("/home/robbe/ionbot/ionbot_0.9.5/PXD022545/mzml_files/QuantifiedPeptides.tsv", sep="\t")
-quant = quant.drop(quant.filter(regex=r"Detection|Gene|Organism|H2O2"), axis=1)
-uniprot = pd.read_csv("/home/robbe/ionbot/full_projects_/PXD022545/PXD022545_first.csv")
+
+quant = pd.read_csv("/home/robbe/ionbot/PXD014381/raw_files/QuantifiedPeptides.tsv", sep="\t")
+quant = quant.drop(["Gene Names","Organism", "Intensity_QX01860","Intensity_QX01863","Intensity_QX01866","Intensity_QX01869","Intensity_QX01872","Intensity_QX01862","Intensity_QX01865","Intensity_QX01868","Intensity_QX01984","Intensity_QX01874"], axis=1)
+quant = quant.drop(list(quant.filter(regex = "Detection")), axis = 1)
+uniprot = pd.read_csv("/home/robbe/ionbot/full_projects_/PXD014381/PXD014381_first.csv")
 uniprot = uniprot[["matched_peptide", "proteins"]]
 
-cols = ['Intensity_2020-07-14_MS_PG_Proteome_Davide_Casserini_CTRL_01_20200717061234',
-       'Intensity_2020-07-14_MS_PG_Proteome_Davide_Casserini_CTRL_02_20200717083719',
-       'Intensity_2020-07-14_MS_PG_Proteome_Davide_Casserini_CTRL_03_20200717110239',]
+cols = ["Intensity_QX01983","Intensity_QX01981_160316090220","Intensity_QX01867","Intensity_QX01870","Intensity_QX01873"]
 
 OA.quantile_transform(quant,cols)
 quantprot = quant[~quant["Protein Groups"].isna()]
@@ -151,5 +151,5 @@ datalist = [data1, data2, data3]
 
 for i, df in enumerate(datalist):
     df["RSA"] = df.progress_apply(RSA_calc, axis=1)
-    df.to_csv("/home/robbe/ionbot/site_occupancy_data/data{}.csv".format(i))
-    print("data {} finished".format(i))
+    df.to_csv("/home/robbe/ionbot/site_occupancy_data/data{}.csv".format(i+5))
+    print("data {} finished".format(i+5))

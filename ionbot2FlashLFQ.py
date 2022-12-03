@@ -35,7 +35,7 @@ for fn in sys.argv[1:]:
     tmp["Precursor Charge"] = data["charge"]
     tmp["Base Sequence"] = data["matched_peptide"]
     tmp["Full Sequence"] = data["Full Sequence"]
-    tmp["Peptide Monoisotopic Mass"] = data.apply(get_mass,axis=1)
+    tmp["Peptide Monoisotopic Mass"] = data.apply(get_mass,axis=1) 
     tmp["Protein Accession"] = data["protein_group"]
     tmp["File Name"] = data["spectrum_file"].apply(remove_extension)
 
