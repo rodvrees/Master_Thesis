@@ -1,5 +1,6 @@
 import sys
 import pandas as pd
+import numpy as np
 
 def is_unlocalized(x):
     if str(x)=="nan":
@@ -19,27 +20,34 @@ def remove_extension(x):
 
 d = []
 for fn in sys.argv[1:]:
+    print(fn)
     data = pd.read_csv(fn)
-    data = data[(data["q-value"] <= 0.01) & (data["database"] == "T")]
-    data["is_unlocalized"] = data["modifications"].apply(is_unlocalized)
-    data["Full Sequence"] = data["matched_peptide"] + data["modifications"].astype(str)
+    if not data.empty:
+        data = data[(data["q-value"] <= 0.01) & (data["database"] == "T")]
+        data["is_unlocalized"] = data["modifications"].apply(is_unlocalized)
+        data["Full Sequence"] = data["matched_peptide"] + data["modifications"].astype(str)
 
-    proteins = pd.read_csv(fn.replace(".csv",".proteins.csv"))
-    proteins = proteins[proteins["protein_group_q-value"]<=0.01]
-    proteins = proteins[proteins["is_shared_peptide"]==False]
-    proteins = proteins[["ionbot_match_id","protein_group"]].drop_duplicates()
-    data = data.merge(proteins,on="ionbot_match_id",how="left")
+        try:
+            proteins = pd.read_csv(fn.replace(".csv",".proteins.csv"))
+            proteins = proteins[proteins["protein_group_q-value"]<=0.01]
+            proteins = proteins[proteins["is_shared_peptide"]==False]
+            proteins = proteins[["ionbot_match_id","protein_group"]].drop_duplicates()
+            data = data.merge(proteins,on="ionbot_match_id",how="left")
+        except FileNotFoundError:
+            data["protein_group"] = np.nan
 
-    tmp = pd.DataFrame()
-    tmp["Scan Retention Time"] = data["observed_retention_time"] / 60
-    tmp["Precursor Charge"] = data["charge"]
-    tmp["Base Sequence"] = data["matched_peptide"]
-    tmp["Full Sequence"] = data["Full Sequence"]
-    tmp["Peptide Monoisotopic Mass"] = data.apply(get_mass,axis=1) 
-    tmp["Protein Accession"] = data["protein_group"]
-    tmp["File Name"] = data["spectrum_file"].apply(remove_extension)
+        
 
-    d.append(tmp)
+        tmp = pd.DataFrame()
+        tmp["Scan Retention Time"] = data["observed_retention_time"] / 60
+        tmp["Precursor Charge"] = data["charge"]
+        tmp["Base Sequence"] = data["matched_peptide"]
+        tmp["Full Sequence"] = data["Full Sequence"]
+        tmp["Peptide Monoisotopic Mass"] = data.apply(get_mass,axis=1) 
+        tmp["Protein Accession"] = data["protein_group"]
+        tmp["File Name"] = data["spectrum_file"].apply(remove_extension)
+
+        d.append(tmp)
 
 # For PSMs with an unlocalized modification ('x') I use the median
 # of all precursor masses for each such peptidoform.
