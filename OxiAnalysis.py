@@ -2,6 +2,8 @@
 from cmath import nan
 from numpy import NaN
 from pyteomics import mass as pymass
+from statannotations.Annotator import Annotator
+
 db = pymass.Unimod()
 modslist = []
 for p in range(len(db.mods)):
@@ -479,7 +481,7 @@ def boxplots(Control_df, Treatment_df, labels):
                         ax.set_xticks(range(2))
                         ax.set_xticklabels(labels)
                         
-                        plt.text(x = 0, y = min(min(dataControl), min(dataTreatment))-4, s="P-value: {:.5f}".format(pval))
+                        #plt.text(x = 0, y = min(min(dataControl), min(dataTreatment))-max(min(dataControl), min(dataTreatment)), s="p-value = {:.5f}".format(pval))
                         plt.title(mod)
                         plt.ylabel("log2(summed modified peptide intensities)")
                         plt.show()

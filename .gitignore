@@ -22,3 +22,14 @@ dotnet-install.sh
 FlashLFQ.zip
 zPXD*/
 PDB_files/
+searchgui/
+Fragpipe_results/
+ionbot_0.9.5/
+pFind_results/
+Comet_output/
+quant_with_new_settings/
+test/
+XTandem_output/
+peptideshakerCLI/
+crux/
+Mouse_proteome/
