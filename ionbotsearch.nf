@@ -10,6 +10,7 @@ default = human
 */
 params.configpath = "$launchDir/configfiles/confighuman2.txt"
 
+
 // //Experimental design file path
 // params.design = "$launchdir/ExperimentalDesign.tsv"
 
@@ -51,15 +52,15 @@ process raw_to_mgf {
 //search mgf files with ionbot
 process ionbotsearch {
 
-    container 'gcr.io/omega-cloud-195908/ionbot:v0.9.6'
-    cpus 16
+    container 'gcr.io/omega-cloud-195908/ionbot:fixes-Enrico_issue-1de9821'
+    cpus 32
 
     input:
     each mgfFile from MGFchannel
     file(configfile)
 
     """
-    mkdir $launchDir/ionbot_0.9.5/${params.accession}/ionbot_files/${mgfFile.baseName} -p
+    mkdir "$launchDir/ionbot_0.9.5/${params.accession}/ionbot_files/${mgfFile.baseName}" -p
     ionbot -c "${configfile}" -o "$launchDir/${params.accession}/ionbot_files/${mgfFile.baseName}" -a ${task.cpus} -I -R -e -m -r "${mgfFile}"
     """
 }

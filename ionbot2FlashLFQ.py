@@ -13,7 +13,7 @@ def is_unlocalized(x):
 def get_mass(x):
     if x["is_unlocalized"] == False:
         return x["peptide_mass"]
-    return x["precursor_mass"]
+    return x["precursor_mass"] 
 
 def remove_extension(x):
     return ".".join(x.split(".")[:-1])
@@ -39,11 +39,12 @@ for fn in sys.argv[1:]:
         
 
         tmp = pd.DataFrame()
-        tmp["Scan Retention Time"] = data["observed_retention_time"] / 60
+        tmp["Scan Retention Time"] = data["observed_retention_time"] / 60 
         tmp["Precursor Charge"] = data["charge"]
         tmp["Base Sequence"] = data["matched_peptide"]
         tmp["Full Sequence"] = data["Full Sequence"]
-        tmp["Peptide Monoisotopic Mass"] = data.apply(get_mass,axis=1) 
+        tmp["Peptide Monoisotopic Mass"] = data.apply(get_mass,axis=1)
+        tmp["Protein Accession"] = np.nan
         tmp["Protein Accession"] = data["protein_group"]
         tmp["File Name"] = data["spectrum_file"].apply(remove_extension)
 

@@ -1,3 +1,4 @@
+import warnings; warnings.simplefilter('ignore')
 from pypdb import *
 from Bio.PDB import PDBParser
 import requests as r
@@ -18,7 +19,8 @@ import sys
 import logging
 import importlib
 importlib.reload(OA)
-import warnings; warnings.simplefilter('ignore')
+import tqdm
+
 session = requests.Session()
 retry = Retry(connect=3, backoff_factor=0.5)
 adapter = HTTPAdapter(max_retries=retry)

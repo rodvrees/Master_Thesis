@@ -483,7 +483,7 @@ def boxplots(Control_df, Treatment_df, labels):
                         
                         #plt.text(x = 0, y = min(min(dataControl), min(dataTreatment))-max(min(dataControl), min(dataTreatment)), s="p-value = {:.5f}".format(pval))
                         plt.title(mod)
-                        plt.ylabel("log2(summed modified peptide intensities)")
+                        plt.ylabel("Summed PTM abundance")
                         plt.show()
 
 import inspect
@@ -535,14 +535,14 @@ def boxplots_not_specific(controldf, treatmentdf,labels):
                     pvallist.append(pval) 
                     if pval < 0.05: #TODO: #6 Multiple hypothesis testing correction needed?
                         formatted_pvalue = f'P-value = {pval:.4e}'
-                        fig = plt.figure()
+                        fig = plt.figure(figsize=(8,6))
                         ax = sns.boxplot(data=data)
                         sns.stripplot(data=data, alpha = 0.3)
                         ax.set_xticks(range(2))
                         ax.set_xticklabels(labels)
-                        plt.text(x = 0, y = min(min(dataControl), min(dataTreatment))-4, s="P-value: {:.3f}".format(pval))
+                        #plt.text(x = 0, y = min(min(dataControl), min(dataTreatment))-4, s="P-value: {:.3f}".format(pval))
                         plt.title(mod)
-                        plt.ylabel("log2(summed modified peptide intensities)")
+                        plt.ylabel("summed PTM abundance")
                         plt.show()
 
 import matplotlib.pyplot as plt
