@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from pypdb import *
 from Bio.PDB import PDBParser
 import requests as r
@@ -11,10 +14,9 @@ from time import sleep
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 import pandas as pd
-import os
 import OxiAnalysis as OA
 import urllib
-import sys
+
 import logging
 import importlib
 importlib.reload(OA)
@@ -79,11 +81,11 @@ session.mount('https://', adapter)
 mastermod = pd.read_csv("/home/robbe/ionbot/mastersets/PXD012477_modifications.csv")
 mastermod = mastermod[mastermod["Accession"] != 6657]
 g = mastermod.groupby(["protein", "uniprot_id", "unexpected_modification", "position"])["#PSMs"].sum().to_frame().reset_index()
-g10 = g[g["#PSMs"] > 10]
+g10 = g[g["#PSMs"] > 1]
 g10 = g10[g10["unexpected_modification"].isin(OA.modslist)]
 logging.info('RSA Calculation started!')
 
-os.chdir("/home/robbe/ionbot/RSA_files")
+os.chdir("/home/robbe/ionbot/Site_accessibility")
 logging.info('Writing result files to {}'.format(os.getcwd()))
 
 with open("RSA.txt", "w") as f:

@@ -10,7 +10,7 @@ for p in range(len(db.mods)):
     for pp in db.mods[p]['specificity']:
         if db.mods[p]['record_id'] in [6, 35, 53, 205, 206, 275, 288, 318, 335, 340, 344, 345, 350, 351, 352, 354, 
         359, 360, 368, 378, 392, 401, 421, 425, 534, 540, 548, 720, 721, 743, 860, 936, 937, 949, 1384, 1914, 1915, 1916, 1917, 1918, 
-        1922, 1923, 1924, 1925, 1926, 1927, 1928, 1929]:
+        1922, 1923, 1924, 1925, 1926, 1927, 1928, 1929]: #Voeg 5 toe voor de non-healthy testing
             t = db.mods[p]['title']
             t = t.replace("[",":").replace("]",":")
             mod = "[" + str(db.mods[p]['record_id']) + "]" + t + "[" + pp['site'] + "]"
@@ -512,7 +512,10 @@ import re
 def get_unimod_acc(str):
     pattern = re.compile(r'\[([0-9]*?)\]')
     lijst = re.findall(pattern, str)
-    return lijst[0]
+    try:
+        return lijst[0]
+    except IndexError:
+        return np.nan
 
 def boxplots_not_specific(controldf, treatmentdf,labels):
     pvallist = []

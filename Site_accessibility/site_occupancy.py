@@ -1,5 +1,7 @@
 import pandas as pd
 import os
+import sys
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import OxiAnalysis as OA
 import warnings; warnings.simplefilter('ignore')
 import numpy as np
@@ -7,13 +9,13 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import re
 import urllib
-import sys
+
 from Bio.PDB import DSSP
 from Bio.PDB import PDBParser
 from pypdb import *
 from Bio.Align import PairwiseAligner
 import numpy as np
-import os  
+
 from tqdm import tqdm, tqdm_pandas
 import time
 tqdm.pandas()
@@ -114,28 +116,30 @@ def RSA_calc(row):
         return np.nan
 
 
+print("Starting")
 
-
-quant = pd.read_csv("/home/robbe/ionbot/PXD014381/raw_files/QuantifiedPeptides.tsv", sep="\t")
-quant = quant.drop(["Gene Names","Organism", "Intensity_QX01860","Intensity_QX01863","Intensity_QX01866","Intensity_QX01869","Intensity_QX01872","Intensity_QX01862","Intensity_QX01865","Intensity_QX01868","Intensity_QX01984","Intensity_QX01874"], axis=1)
+quant = pd.read_csv("/home/robbe/ionbot/ionbot_0.9.5/PXD012477/flashlfq_results/QuantifiedPeptides.tsv", sep="\t")
+quant = quant.drop(["Gene Names","Organism"], axis=1)
 quant = quant.drop(list(quant.filter(regex = "Detection")), axis = 1)
-uniprot = pd.read_csv("/home/robbe/ionbot/full_projects_/PXD014381/PXD014381_first.csv")
+uniprot = pd.read_csv("/home/robbe/ionbot/full_projects_/PXD012477/PXD012477_first.csv")
 uniprot = uniprot[["matched_peptide", "proteins"]]
 
-cols = ["Intensity_QX01983","Intensity_QX01981_160316090220","Intensity_QX01867","Intensity_QX01870","Intensity_QX01873"]
+cols = [col for col in quant.columns if "Intensity"  in col]
 
 OA.quantile_transform(quant,cols)
+quant[cols] = quant[cols].apply(lambda x: x/x.sum())
 quantprot = quant[~quant["Protein Groups"].isna()]
 quantprot['Counts'] = quantprot.groupby(['Base Sequence'])['Sequence'].transform('count')
-quantprot = quantprot.dropna(thresh=7, axis=0)
+# quantprot = quantprot.dropna(thresh=7, axis=0)
 quantprot['median']=quantprot.filter(like='Intensity').apply(lambda x: x.median(), axis=1)
 quantprot["Total_peptide_intensity"] = quantprot.groupby(["Base Sequence"])["median"].transform('sum')
 quantprot["Site_occupancy"] = quantprot["median"] / quantprot["Total_peptide_intensity"]
 quantprot["modifications"] = quantprot["Sequence"].apply(OA.flashLFQmods)
 oxpept = quantprot[quantprot["modifications"].isin(OA.modslist)]
 
-pattern = r"(\d+)\|"
+pattern = r"(\d+|x)\|"
 oxpept["position"] = oxpept["Sequence"].apply(lambda x: re.findall(pattern=pattern, string=x)[0])
+oxpept = oxpept[oxpept["position"] != "x"]
 oxpept["Protein Groups"] = oxpept["Protein Groups"].apply(lambda x: re.sub("sp\|", "", string=x))
 data = oxpept.merge(uniprot,left_on="Base Sequence", right_on="matched_peptide", how="left").drop_duplicates()
 data = data[data["proteins"].notna()]
@@ -144,12 +148,12 @@ data["UP_acc"] = data["UP_acc"].apply(lambda x: re.sub("sp\|","", x))
 data["ProtPos"] = data["UP_acc"].astype(str) + "|" +  data["position"].astype(str)
 
 
-data1 = data.iloc[:1000,:]
-data2 = data.iloc[1000:2000,:]
-data3 = data.iloc[2000:,:]
-datalist = [data1, data2, data3]
+# data1 = data.iloc[:1000,:]
+# data2 = data.iloc[1000:2000,:]
+# data3 = data.iloc[2000:,:]
+# datalist = [data1, data2, data3]
 
-for i, df in enumerate(datalist):
-    df["RSA"] = df.progress_apply(RSA_calc, axis=1)
-    df.to_csv("/home/robbe/ionbot/site_occupancy_data/data{}.csv".format(i+5))
-    print("data {} finished".format(i+5))
+# for i, df in enumerate(datalist):
+data["RSA"] = data.progress_apply(RSA_calc, axis=1)
+data.to_csv("/home/robbe/ionbot/Site_accessibility/data_2103/data.csv")
+print("Finished")
