@@ -52,7 +52,7 @@ process raw_to_mgf {
 //search mgf files with ionbot
 process ionbotsearch {
 
-    container 'gcr.io/omega-cloud-195908/ionbot:fixes-Enrico_issue-1de9821'
+    container 'gcr.io/omega-cloud-195908/ionbot:v0.9.5'
     cpus 32
 
     input:

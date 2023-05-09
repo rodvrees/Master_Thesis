@@ -1,3 +1,4 @@
+#Converts Unimod database into IPSA compatible modification file
 with open("unimodptms.txt") as fn:
     with open("IPSA_MODfile.csv", "w") as ofl:
         ofl.write("Modification Name,Modification Mass\n")

@@ -63,18 +63,12 @@ for mod in OA.modslist:
 
         else:  
             check_list = []
-            # PDBnotfound = 0
-            # PDBfilenotfound = 0
-            # noDSSP = 0
-            # mismatch = 0
             for i, pr in enumerate(pro_poslist):
                 logging.info("{:.2f}% finished".format((i/len(pro_poslist))*100))
                 #Get protein and position
                 protein = pr.split("|")[0]
                 pos = int(pr.split("|")[1])
-                #Search pdb accession id's for the protein
-                # found_pdbs = Query(protein).search()
-                
+
                 #Get Uniprot sequence for protein
                 baseUrl="http://www.uniprot.org/uniprot/"
                 currentUrl=baseUrl+protein+".fasta"
@@ -104,26 +98,10 @@ for mod in OA.modslist:
                         continue
                 except IndexError:
                     continue
-                        
-                    # try:
-                
-                    #     prefix = cheat[pos-8:pos]
-                    #     suffix = cheat[pos+1:pos+9]
-                    #     mod_res = cheat[pos]
-                    #     alignment = prefix + mod_res + suffix
-                    #     f.write(str(alignment) + "\n")
-                    # except ValueError:
-                    #     continue
-        
-        #TODO #9 don't do RSA file for each mod, but one for all with headers
+
         if len(pro_poslist) != 0:
             logging.info("Done writing alignments for residues modified with {}".format(mod))
 
-            # #Print all RSA's to file                    
-            # with open("{}_RSA.txt".format(mod),'w') as f:
-            #     for i in check_list:
-            #         f.write(str(i))
-            #         f.write("\n")
     logging.info("Writing output file finished!")
                 
 

@@ -148,12 +148,6 @@ data["UP_acc"] = data["UP_acc"].apply(lambda x: re.sub("sp\|","", x))
 data["ProtPos"] = data["UP_acc"].astype(str) + "|" +  data["position"].astype(str)
 
 
-# data1 = data.iloc[:1000,:]
-# data2 = data.iloc[1000:2000,:]
-# data3 = data.iloc[2000:,:]
-# datalist = [data1, data2, data3]
-
-# for i, df in enumerate(datalist):
 data["RSA"] = data.progress_apply(RSA_calc, axis=1)
 data.to_csv("/home/robbe/ionbot/Site_accessibility/data_2103/data.csv")
 print("Finished")
