@@ -1,0 +1,4 @@
+This folder contains various analyses
+- [Mass_shift_fingerprint.ipynb](https://github.com/rodvrees/Master_Thesis/blob/main/Project_analysis/Mass_shift_fingerprint.ipynb): this notebook contains all the mass shift analyses plots which show differentially regulated PTMs between conditions.
+- [RA_further_analysis.ipynb](https://github.com/rodvrees/Master_Thesis/blob/main/Project_analysis/RA_further_analysis.ipynb): this notebook contains both the identification of the strongly oxidized proteins after RA stimulation and GO term enrichment analysis
+- [more_analysis_AD.ipynb](https://github.com/rodvrees/Master_Thesis/blob/main/Project_analysis/more_analysis_AD.ipynb): This notebook contains a plot (used in poster) which illustrates the overal distribution of modifications in the OSE comparison dataset.
