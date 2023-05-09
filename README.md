@@ -1,4 +1,4 @@
-# Research Internship Robbe Devreese
+# Master thesis Robbe Devreese
 2022-2023
 #### *ELUCIDATING THE PROTEIN OXIDATION LANDSCAPE WITH COMPREHENSIVE MODIFICATION SEARCHING*
 This github repository contains the code and analysis work done during the Research Internship and Master Dissertation to compile the master thesis.
