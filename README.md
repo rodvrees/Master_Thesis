@@ -23,4 +23,4 @@ A short description of the folders/files/scripts in root directory (see README.m
     2. Convert these RAW files to MGF files using ThermoRawFileParser
     3. Search these MGF files with ionbot using the appropriate configuration file
 
--[noftpnoproblem.nf](https://github.com/rodvrees/Master_Thesis/blob/main/noftpnoproblem.nf) is identical to [ionbotsearch.nf](https://github.com/rodvrees/Research_Internship/blob/main/ionbotsearch.nf), but does not include the first process. Instead of downloading RAW files from PRIDE, the user can provide a path to raw files.
+- [noftpnoproblem.nf](https://github.com/rodvrees/Master_Thesis/blob/main/noftpnoproblem.nf) is identical to [ionbotsearch.nf](https://github.com/rodvrees/Research_Internship/blob/main/ionbotsearch.nf), but does not include the first process. Instead of downloading RAW files from PRIDE, the user can provide a path to raw files.
