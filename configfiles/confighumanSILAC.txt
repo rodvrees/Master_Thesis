@@ -1,7 +1,0 @@
-target=/home/robbe/ionbot/Fastas_and_DB/humancrap_ionbot_db/target_KR
-decoy=/home/robbe/ionbot/Fastas_and_DB/humancrap_ionbot_db/decoy_KR
-
-ptm=[4]carbamidomethyl,57.021464,opt,C,Post-translational
-ptm=[35]oxidation,15.994915,opt,M,Post-translational
-ptm=[259]Label:13C(6)15N(2),8.014199,opt,K,Post-translational
-ptm=[267]Label:13C(6)15N(4),10.008269,opt,R,Post-translational
